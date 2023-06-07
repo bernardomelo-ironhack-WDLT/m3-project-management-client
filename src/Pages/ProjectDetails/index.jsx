@@ -1,29 +1,35 @@
-import { useState, useEffect } from "react";
-import axios from "axios";
-import { Link, useParams } from "react-router-dom";
-import AddTask from "../../Components/AddTask";
-import projectsService from "../../Services/projects.service";
+import {useState, useEffect} from 'react';
+import axios from 'axios'; 
+import {Link, useParams} from 'react-router-dom';
+import projectsService from '../../Services/project.service';
 
-const API_URL = "http://localhost:5005";
-
-function ProjectDetailsPage (props) {
+function ProjectDetailsPage() {
+  // write state. By default it'll be null because we don't have
+  // the project
   const [project, setProject] = useState(null);
- 
-  const { projectId } = useParams();
 
-  const getProject = () => {        
-    projectsService.getProject(projectId)
-      .then((response) => {
-        const oneProject = response.data;
-        setProject(oneProject);
-      })
-      .catch((error) => console.log(error));
-  };
-
-  useEffect(()=> {             
-    getProject();
-  }, [] );
+  // grab the ProjectId from route params
+  const {projectId} = useParams();
   
+  // function to call axios to do a GET request 
+  // to find a Project by the Id. 
+  const getProject = () =>{
+    projectsService.getProject(projectId)
+    .then((response)=>{
+        const oneProject = response.data; 
+        setProject(oneProject);
+    })
+    .catch((error)=>console.log(error));
+  }
+
+  // Side-effect after initial render of the component.
+  // The empty array must be as a parameter to tell to React that 
+  // it'll happen after it renders the component
+
+  useEffect(()=>{
+    getProject();
+  }, [])
+
   return (
     <div className="project-details">
       {project && (
@@ -33,17 +39,6 @@ function ProjectDetailsPage (props) {
         </div>
       )}
         
-      <AddTask refreshProject={getProject} projectId={projectId} /> 
-
-      {project &&
-        project.tasks.map((task) => (
-          <div className="task-card" key={task._id}>
-            <h3>{task.title}</h3>
-            <h4>Description:</h4>
-            <p>{task.description}</p>
-          </div>
-      ))}
-
       <Link to={`/projects/edit/${projectId}`}>
         <button>Edit Project</button>
       </Link>      
@@ -52,7 +47,7 @@ function ProjectDetailsPage (props) {
         <button>Back to projects</button>
       </Link>
     </div>
-  );
+  )
 }
- 
-export default ProjectDetailsPage;
+
+export default ProjectDetailsPage

@@ -1,77 +1,70 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-const API_URL = "http://localhost:5005";
+import React, {useState, useEffect} from 'react';
+import axios from 'axios';
+import authService from '../Services/auth.service';
 
-import authService from "../Services/auth.service";
- 
+// Creates React Context with shareable State data
 const AuthContext = React.createContext();
- 
-function AuthProviderWrapper(props) {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState(null);
- 
-  
-  const storeToken = (token) => {
-    localStorage.setItem('authToken', token);
-  }  
- 
-  
-  const authenticateUser = () => {           //  <==  ADD  
-    // Get the stored token from the localStorage
-    const storedToken = localStorage.getItem('authToken');
-    
-    // If the token exists in the localStorage
-    if (storedToken) {
-      // We must send the JWT token in the request's "Authorization" Headers
-      authService.verify()
-      .then((response) => {
-        // If the server verifies that the JWT token is valid  
-        const user = response.data;
-       // Update state variables        
-        setIsLoggedIn(true);
-        setIsLoading(false);
-        setUser(user);        
-      })
-      .catch((error) => {
-        // If the server sends an error response (invalid token) 
-        // Update state variables         
-        setIsLoggedIn(false);
-        setIsLoading(false);
-        setUser(null);        
-      });      
-    } else {
-      // If the token is not available (or is removed)
-        setIsLoggedIn(false);
-        setIsLoading(false);
-        setUser(null);      
-    }   
-  }
 
-  const removeToken = () => {                 
-    // Upon logout, remove the token from the localStorage
-    localStorage.removeItem("authToken");
-  }
- 
- 
-  const logOutUser = () => {                
-    // To log out the user, remove the token
-    removeToken();
-    // and update the state variables    
-    authenticateUser();
-  }  
- 
-  
-  useEffect(() => {                 //  <==  ADD                                   
-    authenticateUser();   
-  }, []);
- 
-  
-  return (                                                   
-    <AuthContext.Provider value={{ isLoggedIn,isLoading,user,storeToken, authenticateUser, logOutUser}}>
-      {props.children}
+function AuthProviderWrapper(props) {
+    // Write State
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [user, setUser] = useState(null);
+
+    // Store Token function 
+    const storeToken = (token) =>{
+        localStorage.setItem('authToken', token);
+    }
+
+    // Authentication Function 
+    const authenticateUser = ()=>{
+      // Get the Stored Token from Local Storage
+      const storedToken = localStorage.getItem('authToken');
+      if(storedToken){
+      authService.verify()
+      .then((response)=>{
+          //Update state variables
+          setIsLoggedIn(true);
+          setIsLoading(false);
+          setUser(response.data.user);
+      })
+      .catch(()=>{
+        // catch possibility whenever it finds an invalid token
+        setIsLoggedIn(false);
+        setIsLoading(false);
+        setUser(null);
+      })
+    } else {
+      // If the token was not found on localStorage
+      setIsLoggedIn(false);
+      setIsLoading(false);
+      setUser(null);
+    }
+    }
+
+    // Remove Token Function 
+    const removeToken = () =>{
+      //Upon Logout, Remove Token from the localStorage
+      localStorage.removeItem('authToken');
+    };
+
+    const logOutUser = () => {
+      // removing the JWT token from the localStorage
+      removeToken(); 
+      // to update state variables
+      authenticateUser();
+    }
+
+    useEffect(()=>{
+      authenticateUser()
+    }, []) 
+
+  return (
+    <AuthContext.Provider value={{isLoggedIn, isLoading, user, 
+      storeToken, authenticateUser, logOutUser}}>
+        {props.children}
     </AuthContext.Provider>
   )
 }
- 
-export { AuthProviderWrapper, AuthContext };
+
+export {AuthProviderWrapper, AuthContext};

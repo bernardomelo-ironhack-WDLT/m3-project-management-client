@@ -1,5 +1,7 @@
 import axios from 'axios';
 
+/* Axios Service that deals with Project Requests */
+
 class ProjectsService {
   constructor() {
     this.api = axios.create({

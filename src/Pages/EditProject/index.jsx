@@ -1,83 +1,109 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
-import projectsService from "../../Services/projects.service";
- 
-const API_URL = "http://localhost:5005";
- 
-function EditProjectPage(props) {
-  const { projectId } = useParams();  
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+import {useState, useEffect} from 'react';
+import {useParams, useNavigate} from 'react-router-dom';
+import projectsService from '../../Services/project.service';
 
-  const navigate = useNavigate();
+// useState => React Hook that stores data inside a React Component
+// aka store it into React Component' state. 
 
-  useEffect(() => {                                 
-    projectsService.getProject(projectId)
-      .then((response) => {
-        /* 
-          We update the state with the project data coming from the response.
-          This way we set inputs to show the actual title and description of the project
-        */
-        const oneProject = response.data;
-        setTitle(oneProject.title);
-        setDescription(oneProject.description);
-      })
-      .catch((error) => console.log(error));
-    
-  }, [projectId]);
+// useEffect => React Hook that creates side-effects, changing a state
+// variable or mounting / unMounting a React Component. 
 
-  const handleFormSubmit = (e) => {                     // <== ADD
-    e.preventDefault();
-    // Create an object representing the body of the PUT request
-    const requestBody = { title, description };
- 
-    // Make a PUT request to update the project
-    projectsService.updateProject(projectId, requestBody)
-      .then((response) => {
-        // Once the request is resolved successfully and the project
-        // is updated we navigate back to the details page
-        navigate(`/projects/${projectId}`)
-      });
-  };
+// useParams => React Router Dom method to call Route Params. 
 
-  const deleteProject = () => {                   
-    // Make a DELETE request to delete the project
-    projectsService.deleteProject()
-      .then(() => {
-        // Once the delete request is resolved successfully
-        // navigate back to the list of projects.
-        navigate("/projects");
-      })
-      .catch((err) => console.log(err));
-  };  
- 
-  
+// useNavigate => React Router Dom method to redirect to a different
+// route. 
+
+// axios => service that creates http requests to REST APIs. 
+
+// STEPS: 
+// 1) Grab Route Params (projectId). 
+// 2) Call Axios to get specific info of a project.
+// 3) Create a Form. 
+// 4) Handle Change of Inputs' Content. 
+// 5) Handle Submit.
+// 6) Create a Delete Project Function.
+
+function EditProjectPage() {
+    // Write State 
+    const [title, setTitle] = useState("");
+    const [description, setDescription] = useState("");
+
+    // req.params => Express 
+    // useParams() => ReactJS
+
+    const {projectId} = useParams();
+
+    const navigate = useNavigate();
+
+    // Have a Side-Effect after initial rendering of component
+    useEffect(()=>{
+        projectsService.getProject(projectId)
+        .then((response)=>{
+            const oneProject = response.data; 
+            setTitle(oneProject.title);
+            setDescription(oneProject.description);
+        })
+        .catch((error)=>{
+            console.log(error)
+        })
+
+    }, [projectId]);
+
+    // Create a function that Handles Form Submit 
+    const handleFormSubmit = (e)=>{
+        // prevent the default action of the form => refreshing the page
+        e.preventDefault();
+
+        // store title, description that is going to be received
+        // in ExpressJS as req.body.
+        const requestBody = {title, description};      
+
+        // make a PUT request to update the project
+       projectsService.updateProject(projectId, requestBody)
+             .then(()=>{
+                navigate(`/projects/${projectId}`)
+             })
+             .catch((error)=>{
+                console.log(error)
+             })
+    }
+
+    // Create a delete project function 
+    const deleteProject = () => {
+        projectsService.deleteProject(projectId)
+        .then(()=>{
+            navigate('/projects');
+        })
+        .catch((error)=>{
+            console.log(error)
+        })
+    }
+
   return (
     <div className="edit-project-page">
-      <h3>Edit the Project</h3>
- 
-      <form onSubmit={handleFormSubmit}>
-        <label>Title:</label>
-        <input
-          type="text"
-          name="title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-        
-        <label>Description:</label>
-        <textarea
-          name="description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
- 
-        <button type="submit">Edit</button>
-        <button onClick={deleteProject}>Delete Project</button>
-      </form>
-    </div>
-  );
+    <h3>Edit the Project</h3>
+
+    <form onSubmit={handleFormSubmit}>
+      <label>Title:</label>
+      <input
+        type="text"
+        name="title"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+      />
+      
+      <label>Description:</label>
+      <textarea
+        name="description"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+      />
+
+      <button type="submit">Edit</button>
+    </form>
+    <button onClick={deleteProject}>Delete Project</button>
+  </div>    
+  )
 }
- 
-export default EditProjectPage;
+
+export default EditProjectPage
